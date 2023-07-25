@@ -1,10 +1,13 @@
 const telegramBot = require("node-telegram-bot-api");
 require("dotenv").config();
 const TOKEN = process.env.TOKEN;
-const Binance = require('binance-api-node').default;
-const binanceClient = Binance({ apiKey: 'wFnlmhozi5QzTiqwyp8PlsPO6C33rW1pGoPENWyWo8d3Br37BIBE9pgRJM7UDVTR', apiSecret: 'Ag9lHp3MNzFHkuKZegSGQpfZnQTZgBU8g1ba1W7J9CNEO6XFVo6duTDmsHn9faJF',enableRateLimit: true,
-options: { adjustForTimeDifference: true}});
-
+const Binance = require("binance-api-node").default;
+const binanceClient = Binance({
+  apiKey: process.env.API_KEY,
+  apiSecret: process.env.API_SECRET_KEY,
+  enableRateLimit: true,
+  options: { adjustForTimeDifference: true },
+});
 
 //bot created
 const botUpdated = new telegramBot(TOKEN, { polling: true });
@@ -25,73 +28,65 @@ botUpdated.onText(/\/start/, (message) => {
 });
 
 botUpdated.onText(/\/trade/, (msg) => {
-    const chatId = msg.chat.id;
+  const chatId = msg.chat.id;
 
-    botUpdated.sendMessage(chatId, 'Lets start! Please provide the symbol, price, and order type in the format: "Symbol Price OrderType Quantity"');
+  botUpdated.sendMessage(
+    chatId,
+    'Lets start! Please provide the symbol, price, and order type in the format: "Symbol Price OrderType Quantity"'
+  );
 });
 
 botUpdated.onText(/^([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+)$/, (msg, match) => {
-    const chatId = msg.chat.id;
-    const [_, symbol, price, orderType, quantity] = match;
-    console.log(symbol, price, orderType, quantity, "details");
-  
-    // Validate the user input
-    if (!symbol || !price || !orderType) {
-      botUpdated.sendMessage(
-        chatId,
-        'Invalid input. Please provide the symbol, price, and order type in the format: "Symbol Price OrderType"'
-      );
-      return;
-    }
+  const chatId = msg.chat.id;
+  const [_, symbol, price, orderType, quantity] = match;
+  console.log(symbol, price, orderType, quantity, "details");
 
-    orderSymbol = symbol;
-    side = orderType;
-    orderPrice = price;
-    orderQuantity = quantity;
-
+  // Validate the user input
+  if (!symbol || !price || !orderType) {
     botUpdated.sendMessage(
-        chatId,
-        'We are going to execute the trade. To confirm send /YES or /NO to cancel'
+      chatId,
+      'Invalid input. Please provide the symbol, price, and order type in the format: "Symbol Price OrderType"'
     );
-    
-    
+    return;
+  }
+
+  orderSymbol = symbol;
+  side = orderType;
+  orderPrice = price;
+  orderQuantity = quantity;
+
+  botUpdated.sendMessage(
+    chatId,
+    "We are going to execute the trade. To confirm send /YES or /NO to cancel"
+  );
 });
 
 async function executeTrade(symbol, side, quantity, price) {
-    try {
-        const response = await binanceClient.order({
-            symbol: "BTCUSDT",
-            side: "buy",
-            quantity:0.00036,
-            price:28000,
-            type: 'LIMIT', // Change to 'MARKET' for market orders
-            timeInForce: 'GTC', // Good Till Cancel
-            recvWindow: 60000,
-            // timestamp: adjustedTimestamp,
-          });
-        console.log(response,"response")
-        
-    } catch (error) {
-        console.log(error)
-    }
-
+  try {
+    const response = await binanceClient.order({
+      symbol: "BTCUSDT",
+      side: "buy",
+      quantity: 0.00036,
+      price: 28000,
+      type: "LIMIT", // Change to 'MARKET' for market orders
+      timeInForce: "GTC", // Good Till Cancel
+      recvWindow: 60000,
+      // timestamp: adjustedTimestamp,
+    });
+    console.log(response, "response");
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 botUpdated.onText(/\/YES/, (msg) => {
-    const chatId = msg.chat.id;
-    executeTrade(orderSymbol, side, parseFloat(orderPrice), orderQuantity);
-    botUpdated.sendMessage(chatId, 'Trade Executed');
+  const chatId = msg.chat.id;
+  executeTrade(orderSymbol, side, parseFloat(orderPrice), orderQuantity);
+  botUpdated.sendMessage(chatId, "Trade Executed");
 });
 
 botUpdated.onText(/\/NO/, (msg) => {
-    const chatId = msg.chat.id;
+  const chatId = msg.chat.id;
 
-    botUpdated.sendMessage(chatId, 'Trade cancelled');
+  botUpdated.sendMessage(chatId, "Trade cancelled");
 });
-
-
-
-
-
-
-
