@@ -39,7 +39,6 @@ botUpdated.onText(/\/trade/, (msg) => {
 botUpdated.onText(/^([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+)$/, (msg, match) => {
   const chatId = msg.chat.id;
   const [_, symbol, price, orderType, quantity] = match;
-  console.log(symbol, price, orderType, quantity, "details");
 
   // Validate the user input
   if (!symbol || !price || !orderType) {
@@ -71,19 +70,17 @@ async function executeTrade(symbol, side, quantity, price) {
       type: "LIMIT", // Change to 'MARKET' for market orders
       timeInForce: "GTC", // Good Till Cancel
       recvWindow: 60000,
-      // timestamp: adjustedTimestamp,
     });
-    console.log(response, "response");
     return response;
   } catch (error) {
     console.log(error);
   }
 }
 
-botUpdated.onText(/\/YES/, (msg) => {
+botUpdated.onText(/\/YES/, async (msg) => {
   const chatId = msg.chat.id;
-  const response = executeTrade(orderSymbol, side, parseFloat(orderPrice), orderQuantity);
-  botUpdated.sendMessage(chatId, `Trade Executed : ${response}`);
+  const response = await executeTrade(orderSymbol, side, orderQuantity,parseFloat(orderPrice));
+  botUpdated.sendMessage(chatId, `Trade Executed , OrderId: ${response.orderId}`);
 });
 
 botUpdated.onText(/\/NO/, (msg) => {
