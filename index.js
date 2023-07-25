@@ -64,16 +64,17 @@ botUpdated.onText(/^([^\s]+) ([^\s]+) ([^\s]+) ([^\s]+)$/, (msg, match) => {
 async function executeTrade(symbol, side, quantity, price) {
   try {
     const response = await binanceClient.order({
-      symbol: "BTCUSDT",
-      side: "buy",
-      quantity: 0.00036,
-      price: 28000,
+      symbol: symbol,
+      side: side,
+      quantity: quantity,
+      price: price,
       type: "LIMIT", // Change to 'MARKET' for market orders
       timeInForce: "GTC", // Good Till Cancel
       recvWindow: 60000,
       // timestamp: adjustedTimestamp,
     });
     console.log(response, "response");
+    return response;
   } catch (error) {
     console.log(error);
   }
@@ -81,8 +82,8 @@ async function executeTrade(symbol, side, quantity, price) {
 
 botUpdated.onText(/\/YES/, (msg) => {
   const chatId = msg.chat.id;
-  executeTrade(orderSymbol, side, parseFloat(orderPrice), orderQuantity);
-  botUpdated.sendMessage(chatId, "Trade Executed");
+  const response = executeTrade(orderSymbol, side, parseFloat(orderPrice), orderQuantity);
+  botUpdated.sendMessage(chatId, `Trade Executed : ${response}`);
 });
 
 botUpdated.onText(/\/NO/, (msg) => {
